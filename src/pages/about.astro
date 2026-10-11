@@ -2,16 +2,10 @@
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site';
 
-const now = [
-  ['Building', 'This site, and a few GenAI experiments'],
-  ['Learning', 'Kubernetes, distributed systems, interpretable ML'],
-  ['Reading', 'Whatever keeps me up past midnight'],
-];
 ---
 
 <Base title="About">
   <div class="wrap about">
-    <span class="label label--ink">03 / About</span>
     <h1>Hi, I'm {SITE.author}.</h1>
 
     <div class="prose">
@@ -25,20 +19,10 @@ const now = [
       </p>
     </div>
 
-    <dl class="now">
-      {
-        now.map(([k, v]) => (
-          <div>
-            <dt class="label">{k}</dt>
-            <dd>{v}</dd>
-          </div>
-        ))
-      }
-    </dl>
-
     <div class="contact">
       {SITE.links.email && <a class="box-link" href={SITE.links.email}>Email</a>}
-      <a class="box-link" href={SITE.links.github}>GitHub</a>
+      <a class="box-link" href="https://viverun.github.io/">Portfolio ↗</a>
+      <a class="box-link" href={SITE.links.github}>GitHub ↗</a>
     </div>
   </div>
 </Base>
@@ -57,24 +41,8 @@ const now = [
     text-transform: uppercase;
   }
 
-  .now {
-    max-width: var(--measure);
-    margin: 3.5rem 0 0;
-    border-top: 1px solid var(--ink);
-  }
 
-  .now div {
-    display: grid;
-    grid-template-columns: 9rem 1fr;
-    gap: 1rem;
-    padding-block: 0.9rem;
-    border-bottom: 1px solid var(--rule);
-  }
 
-  dd {
-    margin: 0;
-    font-size: var(--t-small);
-  }
 
   .contact {
     display: flex;

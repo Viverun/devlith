@@ -20,13 +20,6 @@ const latest = posts.slice(0, 5);
         ))
       }
     </h1>
-
-    <a class="scroll" href="#latest">
-      <hr class="rule rule--soft" />
-      <span class="label">Scroll to read</span>
-    </a>
-
-    <span class="label corner br">Personal journal</span>
   </section>
 
   <section id="latest" class="wrap latest">
@@ -90,33 +83,6 @@ const latest = posts.slice(0, 5);
     line-height: 0.95;
     letter-spacing: -0.045em;
     text-align: center;
-  }
-
-  .scroll {
-    display: grid;
-    justify-items: center;
-    gap: 1.5rem;
-    width: min(360px, 70vw);
-    text-decoration: none;
-  }
-
-  .scroll hr {
-    width: 100%;
-    border-top-color: var(--muted);
-  }
-
-  .scroll:hover .label {
-    color: var(--ink);
-  }
-
-  .corner {
-    position: absolute;
-    font-size: 0.625rem;
-  }
-  .br {
-    bottom: 1.5rem;
-    right: var(--gutter);
-    text-align: right;
   }
 
   /* ---------- latest ---------- */
