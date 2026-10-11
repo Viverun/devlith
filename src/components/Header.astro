@@ -27,7 +27,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       ))
     }
   </nav>
-  <a class="box-link" href="/rss.xml">RSS</a>
+  <span></span>
 </header>
 
 <style>
@@ -81,10 +81,6 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   nav a[aria-current='page'] {
     text-decoration: underline;
     text-underline-offset: 5px;
-  }
-
-  .box-link {
-    justify-self: end;
   }
 
   @media (max-width: 560px) {
