@@ -5,7 +5,7 @@
   --paper: #f4efe6;
   --paper-deep: #ebe4d7;
   --ink: #111111;
-  --muted: #77736b;
+  --muted: #66625a; /* 5.3:1 on paper (WCAG AA) */
   --rule: #cfc8bc;
 
   --font: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;

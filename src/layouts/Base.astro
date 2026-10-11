@@ -7,9 +7,11 @@ import { url } from '../lib/url';
 interface Props {
   title?: string;
   description?: string;
+  /** error pages: keep out of search results and don't claim a canonical URL */
+  noindex?: boolean;
 }
 
-const { title, description = SITE.description } = Astro.props;
+const { title, description = SITE.description, noindex = false } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.author}'s journal`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -21,14 +23,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
     <link rel="alternate" type="application/rss+xml" title={SITE.name} href={url('/rss.xml')} />
     <link rel="sitemap" href={url('/sitemap-index.xml')} />
     <meta name="theme-color" content="#f4efe6" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:type" content="website" />
     <meta name="generator" content={Astro.generator} />
   </head>
@@ -37,10 +39,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <script is:inline>
       // Expose the header's real height so full-screen sections can subtract it (it wraps to two rows on phones).
       (() => {
+        // ResizeObserver reports after layout, so this never forces an extra synchronous reflow.
         const h = document.querySelector('.site-header');
-        const set = () => document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
-        set();
-        addEventListener('resize', set);
+        new ResizeObserver(([e]) =>
+          document.documentElement.style.setProperty('--header-h', e.borderBoxSize[0].blockSize + 'px'),
+        ).observe(h);
       })();
     </script>
     <main>
