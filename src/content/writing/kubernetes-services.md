@@ -5,8 +5,6 @@ date: 2026-10-04
 topic: Engineering
 ---
 
-> Sample entry — a technical post, to show code blocks and tables.
-
 Pods come and go. Their IPs change every time they're rescheduled. So how does anything talk to anything else?
 
 ## The problem

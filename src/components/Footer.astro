@@ -9,7 +9,7 @@ const year = new Date().getFullYear();
     <span class="label">© {year} {SITE.author} · {SITE.domain}</span>
     <nav class="links" aria-label="Elsewhere">
       <a class="label" href={SITE.links.github}>GitHub</a>
-      <a class="label" href={SITE.links.email}>Email</a>
+      {SITE.links.email && <a class="label" href={SITE.links.email}>Email</a>}
       <a class="label" href="/rss.xml">RSS</a>
     </nav>
     <span class="label">Set in JetBrains Mono</span>

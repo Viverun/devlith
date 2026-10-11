@@ -1,7 +1,7 @@
 // Edit these to make the site yours.
 export const SITE = {
   name: 'VIVERUN',
-  domain: 'viverun.dev',
+  domain: 'devlith.vercel.app',
   author: 'Jamil',
   role: 'Engineer',
   location: 'India',
@@ -12,6 +12,7 @@ export const SITE = {
   hero: ['WRITING', 'TO', 'THINK.'],
   links: {
     github: 'https://github.com/viverun',
-    email: 'mailto:hello@viverun.dev',
+    // Set to 'mailto:you@example.com' to show Email links.
+    email: '',
   },
 };

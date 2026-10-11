@@ -5,8 +5,6 @@ date: 2026-10-11
 topic: Thoughts
 ---
 
-> Sample entry — replace this with your own words.
-
 I've started and abandoned more notebooks than I can count. Most of them died because they were *for* something — a course, a project, an interview. This one is different: it's for me.
 
 ## Writing is thinking

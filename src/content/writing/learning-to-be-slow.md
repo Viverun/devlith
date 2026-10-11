@@ -5,8 +5,6 @@ date: 2026-09-27
 topic: Thoughts
 ---
 
-> Sample entry — replace this with your own words.
-
 There's a specific feeling I get when I don't understand something. A tightness. An urge to skim, to copy the answer, to move on.
 
 ## Sitting with it

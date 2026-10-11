@@ -38,7 +38,7 @@ const now = [
     </dl>
 
     <div class="contact">
-      <a class="box-link" href={SITE.links.email}>Email</a>
+      {SITE.links.email && <a class="box-link" href={SITE.links.email}>Email</a>}
       <a class="box-link" href={SITE.links.github}>GitHub</a>
       <a class="box-link" href="/rss.xml">RSS</a>
     </div>
