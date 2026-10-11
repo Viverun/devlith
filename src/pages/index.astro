@@ -20,6 +20,11 @@ const latest = posts.slice(0, 5);
         ))
       }
     </h1>
+
+    <a class="scroll-cue" href="#latest" aria-label="Scroll to the latest entries">
+      <span class="label">Scroll</span>
+      <svg viewBox="0 0 16 24" aria-hidden="true"><path d="M8 2v18M2 14l6 6 6-6" /></svg>
+    </a>
   </section>
 
   <section id="latest" class="wrap latest">
@@ -66,7 +71,8 @@ const latest = posts.slice(0, 5);
   /* ---------- hero ---------- */
   .hero {
     position: relative;
-    min-height: calc(100svh - 4rem);
+    /* fill exactly what's left under the header (its height is measured in Base.astro) */
+    min-height: calc(100svh - var(--header-h, 4rem));
     display: grid;
     place-content: center;
     justify-items: center;
@@ -83,6 +89,43 @@ const latest = posts.slice(0, 5);
     line-height: 0.95;
     letter-spacing: -0.045em;
     text-align: center;
+  }
+
+  /* ---------- scroll cue ---------- */
+  .scroll-cue {
+    position: absolute;
+    bottom: clamp(1.25rem, 4vh, 2.5rem);
+    left: 50%;
+    translate: -50% 0;
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+  }
+
+  .scroll-cue svg {
+    width: 0.9rem;
+    height: 1.35rem;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: square;
+    animation: nudge 1.8s ease-in-out infinite;
+  }
+
+  .scroll-cue:hover .label {
+    color: var(--ink);
+  }
+
+  @keyframes nudge {
+    0%, 100% { transform: translateY(0); opacity: 0.55; }
+    50% { transform: translateY(6px); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-cue svg {
+      animation: none;
+    }
   }
 
   /* ---------- latest ---------- */

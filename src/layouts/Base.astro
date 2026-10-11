@@ -34,6 +34,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <Header />
+    <script is:inline>
+      // Expose the header's real height so full-screen sections can subtract it (it wraps to two rows on phones).
+      (() => {
+        const h = document.querySelector('.site-header');
+        const set = () => document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+        set();
+        addEventListener('resize', set);
+      })();
+    </script>
     <main>
       <slot />
     </main>
