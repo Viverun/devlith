@@ -3,7 +3,6 @@ export const SITE = {
   name: 'VIVERUN',
   author: 'Jamil',
   role: 'Engineer',
-  location: 'India',
   description: 'A personal journal by Jamil — things I think, feel, and am trying to understand.',
   // Hero headline on the home page, one line per array item.
   hero: ['WRITING', 'TO', 'THINK.'],
