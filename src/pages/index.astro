@@ -1,0 +1,209 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site';
+import { getPosts, fmtDate } from '../lib/posts';
+
+const posts = await getPosts();
+const latest = posts.slice(0, 5);
+---
+
+<Base>
+  <section class="hero wrap">
+    <span class="label corner tl">Vol. {SITE.volume} — {SITE.established}</span>
+
+    <h1 class="headline">
+      {
+        SITE.hero.map((line, i) => (
+          <span class="line">
+            {line}
+            {i === SITE.hero.length - 1 && <span class="cursor" aria-hidden="true" />}
+          </span>
+        ))
+      }
+    </h1>
+
+    <a class="scroll" href="#latest">
+      <hr class="rule rule--soft" />
+      <span class="label">Scroll to read</span>
+    </a>
+
+    <span class="label corner bl">Est. {SITE.established} · {SITE.location}</span>
+    <span class="label corner br">Personal journal<br />{SITE.author}, {SITE.role}</span>
+  </section>
+
+  <section id="latest" class="wrap latest">
+    <div class="section-head">
+      <span class="label label--ink">01 / Latest entries</span>
+      <a class="arrow-link" href="/writing">All {posts.length} →</a>
+    </div>
+
+    <ol class="entries">
+      {
+        latest.map((post) => (
+          <li>
+            <a class="entry" href={`/writing/${post.id}`}>
+              <span class="no">{post.no}</span>
+              <div class="body">
+                <h2>{post.data.title}</h2>
+                <p>{post.data.description}</p>
+              </div>
+              <div class="meta label">
+                <span>{post.data.topic}</span>
+                <span>{fmtDate(post.data.date)}</span>
+                <span>{post.minutes} min</span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="wrap colophon">
+    <div class="section-head">
+      <span class="label label--ink">02 / Why this exists</span>
+    </div>
+    <p>
+      This is where I think out loud — about engineering, about learning, and about whatever I happen to be
+      feeling at the time. No algorithm, no engagement metrics. Just a notebook that happens to be public.
+    </p>
+    <a class="box-link" href="/about">More about me</a>
+  </section>
+</Base>
+
+<style>
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    min-height: calc(100svh - 4rem);
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: clamp(2.5rem, 6vw, 4.5rem);
+    padding-block: 5rem;
+  }
+
+  .headline {
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    font-size: var(--t-hero);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    text-align: center;
+  }
+
+  .scroll {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+    width: min(360px, 70vw);
+    text-decoration: none;
+  }
+
+  .scroll hr {
+    width: 100%;
+    border-top-color: var(--muted);
+  }
+
+  .scroll:hover .label {
+    color: var(--ink);
+  }
+
+  .corner {
+    position: absolute;
+    font-size: 0.625rem;
+  }
+  .tl {
+    top: 1.5rem;
+    left: var(--gutter);
+  }
+  .bl {
+    bottom: 1.5rem;
+    left: var(--gutter);
+  }
+  .br {
+    bottom: 1.5rem;
+    right: var(--gutter);
+    text-align: right;
+  }
+
+  /* ---------- latest ---------- */
+  .entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .entries li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 5rem 1fr 11rem;
+    gap: 1.5rem;
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+    text-decoration: none;
+    transition: background 0.2s, padding 0.2s;
+  }
+
+  .entry:hover {
+    background: var(--paper-deep);
+    padding-inline: 1rem;
+  }
+
+  .no {
+    font-size: var(--t-small);
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .body h2 {
+    margin: 0 0 0.6rem;
+    font-size: var(--t-h2);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .body p {
+    margin: 0;
+    max-width: 52ch;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .meta {
+    display: grid;
+    align-content: start;
+    justify-items: end;
+    gap: 0.2rem;
+  }
+
+  @media (max-width: 720px) {
+    .entry {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .meta {
+      grid-auto-flow: column;
+      justify-content: start;
+      gap: 1rem;
+    }
+  }
+
+  /* ---------- colophon ---------- */
+  .colophon {
+    margin-top: clamp(4rem, 9vw, 7rem);
+  }
+
+  .colophon p {
+    max-width: 60ch;
+    margin: 2rem 0;
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+</style>

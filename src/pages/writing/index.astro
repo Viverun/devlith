@@ -1,0 +1,201 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, fmtDate, type Post } from '../../lib/posts';
+
+const posts = await getPosts();
+
+const groupBy = (key: (p: Post) => string) => {
+  const groups = new Map<string, Post[]>();
+  for (const p of posts) groups.set(key(p), [...(groups.get(key(p)) ?? []), p]);
+  return [...groups];
+};
+
+const byTopic = groupBy((p) => p.data.topic).sort(([a], [b]) => a.localeCompare(b));
+const byDate = groupBy((p) => String(p.data.date.getFullYear()));
+const views = [
+  { id: 'date', label: 'Sort by date ↓', groups: byDate },
+  { id: 'topic', label: 'Sort by topic', groups: byTopic },
+];
+---
+
+<Base title="Writing" description="Every entry in the journal, by date or by topic.">
+  <div class="wrap">
+    <h1 class="title">Writing</h1>
+
+    <div class="sorts" role="tablist" aria-label="Sort entries">
+      {
+        views.map((v, i) => (
+          <button role="tab" class="label" data-view={v.id} aria-selected={i === 0 ? 'true' : 'false'}>
+            {v.label}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      views.map((v, i) => (
+        <div class="view" data-view={v.id} role="tabpanel" hidden={i !== 0}>
+          {v.groups.map(([group, items]) => (
+            <section class="group">
+              <h2 class="group-title">{group}</h2>
+              <div class="grid">
+                {items.map((post) => (
+                  <article class="item">
+                    <span class="label">
+                      No. {post.no} · {v.id === 'date' ? post.data.topic : post.data.date.getFullYear()}
+                    </span>
+                    <h3>
+                      <a href={`/writing/${post.id}`}>“{post.data.title}”</a>
+                    </h3>
+                    <p class="byline">
+                      {fmtDate(post.data.date)} · {post.minutes} min read ·{' '}
+                      <a href={`/writing/${post.id}`}>READ</a>
+                    </p>
+                    <details>
+                      <summary class="label label--ink">Show abstract</summary>
+                      <p>{post.data.description}</p>
+                    </details>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</Base>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.sorts button');
+  const panels = document.querySelectorAll<HTMLElement>('.view');
+  tabs.forEach((tab) =>
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+      panels.forEach((p) => (p.hidden = p.dataset.view !== tab.dataset.view));
+    }),
+  );
+</script>
+
+<style>
+  .title {
+    margin: clamp(2.5rem, 7vw, 5rem) 0 2.5rem;
+    font-size: var(--t-display);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .sorts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .sorts button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .sorts button[aria-selected='true'] {
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .group + .group {
+    margin-top: 4.5rem;
+  }
+
+  .group-title {
+    margin: 0;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--ink);
+    font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .item {
+    padding: 1.6rem 2.5rem 1.8rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .item:nth-child(even) {
+    padding: 1.6rem 0 1.8rem 2.5rem;
+    border-left: 1px solid var(--ink);
+  }
+
+  .item h3 {
+    margin: 0.7rem 0 0.6rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .item h3 a {
+    text-decoration: none;
+  }
+
+  .item h3 a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .byline {
+    margin: 0 0 0.9rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .byline a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  details p {
+    margin: 0.75rem 0 0;
+    font-size: var(--t-small);
+    line-height: 1.65;
+  }
+
+  summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.625rem;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: ' ⌄';
+  }
+
+  details[open] summary::after {
+    content: ' ⌃';
+  }
+
+  @media (max-width: 720px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .item,
+    .item:nth-child(even) {
+      padding: 1.5rem 0;
+      border-left: 0;
+    }
+  }
+</style>

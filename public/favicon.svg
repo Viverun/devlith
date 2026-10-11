@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 44 44">
+  <style>
+    .v { fill: #F4EFE6; }
+    @media (prefers-color-scheme: light) { .v { fill: #111111; } }
+  </style>
+  <g class="v" transform="translate(1 0)">
+    <path d="M10 14h9.5L25 40l5.5-26H40L30 50H20z"/>
+    <rect x="46" y="12" width="4" height="40"/>
+  </g>
+</svg>

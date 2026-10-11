@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .cursor { animation: blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  </style>
+  <rect width="64" height="64" fill="#F4EFE6"/>
+  <rect x="3.5" y="3.5" width="57" height="57" fill="none" stroke="#111111" stroke-width="1"/>
+  <g fill="#111111" transform="translate(2 0)">
+    <path d="M10 14h9.5L25 40l5.5-26H40L30 50H20z"/>
+    <rect class="cursor" x="46" y="12" width="4" height="40"/>
+  </g>
+</svg>

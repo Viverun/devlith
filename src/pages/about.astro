@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site';
+
+const now = [
+  ['Building', 'This site, and a few GenAI experiments'],
+  ['Learning', 'Kubernetes, distributed systems, interpretable ML'],
+  ['Reading', 'Whatever keeps me up past midnight'],
+  ['Based in', SITE.location],
+];
+---
+
+<Base title="About">
+  <div class="wrap about">
+    <span class="label label--ink">03 / About</span>
+    <h1>Hi, I'm {SITE.author}.</h1>
+
+    <div class="prose">
+      <p>
+        I'm an engineer who likes to understand how things work — and, more and more, how I work. This journal is
+        where both of those meet: notes on what I'm building and learning, and honest writing about what I'm
+        thinking and feeling along the way.
+      </p>
+      <p>
+        Nothing here is meant to be definitive. Think of every entry as a snapshot of a mind in progress.
+      </p>
+    </div>
+
+    <dl class="now">
+      {
+        now.map(([k, v]) => (
+          <div>
+            <dt class="label">{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="contact">
+      <a class="box-link" href={SITE.links.email}>Email</a>
+      <a class="box-link" href={SITE.links.github}>GitHub</a>
+      <a class="box-link" href="/rss.xml">RSS</a>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .about {
+    padding-top: clamp(2.5rem, 7vw, 5rem);
+  }
+
+  h1 {
+    margin: 1.5rem 0 2.5rem;
+    font-size: var(--t-display);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+
+  .now {
+    max-width: var(--measure);
+    margin: 3.5rem 0 0;
+    border-top: 1px solid var(--ink);
+  }
+
+  .now div {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 3rem;
+  }
+</style>

@@ -1,0 +1,259 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site';
+import { getPosts, fmtDate } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    // posts are newest-first: index-1 is newer, index+1 is older
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2);
+---
+
+<Base title={post.data.title} description={post.data.description}>
+  <article class="wrap">
+    <header class="head">
+      <div class="top">
+        <span class="label label--ink">{SITE.name} / {post.no}</span>
+        <span class="label">{post.data.topic}{post.data.draft && ' · DRAFT'}</span>
+      </div>
+
+      <h1>{post.data.title}</h1>
+
+      <dl class="titleblock">
+        <div><dt class="label">Date</dt><dd>{fmtDate(post.data.date)}</dd></div>
+        <div><dt class="label">Reading</dt><dd>{post.minutes} min</dd></div>
+        <div><dt class="label">Topic</dt><dd>{post.data.topic}</dd></div>
+        <div><dt class="label">Author</dt><dd>{SITE.author}</dd></div>
+      </dl>
+    </header>
+
+    <div class="layout">
+      <aside class="side">
+        <p class="lede">{post.data.description}</p>
+        {
+          toc.length > 0 && (
+            <nav class="toc" aria-label="Contents">
+              <span class="label label--ink">Contents</span>
+              <ol>
+                {toc.map((h, i) => (
+                  <li>
+                    <a href={`#${h.slug}`}>
+                      <span class="n">{String(i + 1).padStart(2, '0')}</span>
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+        <a class="arrow-link back" href="/writing">← All entries</a>
+      </aside>
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More entries">
+      {
+        older ? (
+          <a href={`/writing/${older.id}`}>
+            <span class="label">← Previous / {older.no}</span>
+            <span class="t">{older.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        newer && (
+          <a class="next" href={`/writing/${newer.id}`}>
+            <span class="label">Next / {newer.no} →</span>
+            <span class="t">{newer.data.title}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(2.5rem, 7vw, 5rem);
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  h1 {
+    max-width: 18ch;
+    margin: 1.75rem 0 clamp(2.5rem, 6vw, 4rem);
+    font-size: var(--t-display);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  /* architectural title block */
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .titleblock div {
+    padding: 0.8rem 1rem 0.9rem 0;
+  }
+
+  .titleblock div + div {
+    padding-left: 1rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+    font-size: var(--t-small);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--measure));
+    gap: clamp(1.5rem, 5vw, 4rem);
+    margin-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .side {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    display: grid;
+    gap: 2rem;
+  }
+
+  .toc ol {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    border-top: 1px solid var(--ink);
+  }
+
+  .toc li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toc a {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    padding-block: 0.6rem;
+    font-size: var(--t-small);
+    line-height: 1.4;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .toc a:hover {
+    background: var(--paper-deep);
+  }
+
+  .toc .n {
+    color: var(--muted);
+  }
+
+  .back {
+    justify-self: start;
+  }
+
+  .lede {
+    margin: 0;
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: clamp(4rem, 9vw, 6rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ink);
+  }
+
+  .pager a {
+    display: grid;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+
+  .pager .next {
+    text-align: right;
+  }
+
+  .pager .t {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+
+  .pager a:hover .t {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (max-width: 860px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .side {
+      position: static;
+    }
+    .toc,
+    .back {
+      display: none;
+    }
+    .lede {
+      max-width: var(--measure);
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .titleblock {
+      grid-template-columns: 1fr 1fr;
+    }
+    .titleblock div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .titleblock div:nth-child(4) {
+      border-top: 1px solid var(--rule);
+    }
+    .pager {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

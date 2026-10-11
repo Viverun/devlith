@@ -1,0 +1,835 @@
+---
+// Private writing desk — injected only under `astro dev` (see integrations/desk.mjs).
+import '../styles/global.css';
+import { SITE } from '../site';
+
+const api = Astro.url.pathname.replace(/\/$/, '') + '/api';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Desk — {SITE.domain}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body data-api={api}>
+    <div class="desk" data-mode="write">
+      <!-- ───────── top bar ───────── -->
+      <header class="bar">
+        <div class="bar-left">
+          <button class="icon" id="toggle-side" title="Toggle entries (Ctrl+\)">☰</button>
+          <span class="brand">{SITE.name} / DESK</span>
+        </div>
+        <span class="label status" id="status">New entry</span>
+        <div class="bar-right">
+          <div class="modes" role="tablist" aria-label="View">
+            <button data-mode="write" aria-selected="true">Write</button>
+            <button data-mode="split">Split</button>
+            <button data-mode="preview">Preview</button>
+          </div>
+          <label class="draft-toggle label">
+            <input type="checkbox" id="draft" checked /> Draft
+          </label>
+          <button class="btn" id="save" title="Ctrl+S">Save</button>
+          <button class="btn btn--ink" id="publish" title="Mark public, save, commit & push">Publish ↑</button>
+        </div>
+      </header>
+
+      <!-- ───────── entries ───────── -->
+      <aside class="side" id="side">
+        <button class="new" id="new">+ New entry</button>
+        <ol id="list"></ol>
+        <a class="label view-site" href="/" target="_blank">View site ↗</a>
+      </aside>
+
+      <!-- ───────── page ───────── -->
+      <main class="page">
+        <div class="meta">
+          <input id="title" class="title" placeholder="UNTITLED" autocomplete="off" />
+          <textarea id="description" rows="2" placeholder="One or two sentences about this entry — shown on the index and in RSS."></textarea>
+          <div class="row">
+            <label><span class="label">Topic</span><input id="topic" list="topics" placeholder="Thoughts" /></label>
+            <label><span class="label">Date</span><input id="date" type="date" /></label>
+            <label class="slug"><span class="label">URL</span><span class="prefix">/writing/</span><input id="slug" placeholder="auto-from-title" /></label>
+          </div>
+          <datalist id="topics"></datalist>
+        </div>
+
+        <div class="toolbar" role="toolbar" aria-label="Formatting">
+          <button data-fmt="h2" title="Section heading">H2</button>
+          <button data-fmt="h3" title="Sub heading">H3</button>
+          <button data-fmt="bold" title="Ctrl+B"><b>B</b></button>
+          <button data-fmt="italic" title="Ctrl+I"><i>I</i></button>
+          <button data-fmt="link" title="Ctrl+K">Link</button>
+          <button data-fmt="quote" title="Quote">“ ”</button>
+          <button data-fmt="list" title="List">—</button>
+          <button data-fmt="code" title="Code block">{'</>'}</button>
+          <button data-fmt="hr" title="Divider">* * *</button>
+          <button data-fmt="image" title="Insert image (or paste / drop one)">Image</button>
+          <input type="file" id="file" accept="image/*" hidden />
+        </div>
+
+        <div class="panes">
+          <textarea id="body" class="editor" placeholder="Start writing. Markdown works. Paste or drop images." spellcheck="true"></textarea>
+          <article class="preview">
+            <span class="label label--ink" id="pv-no">{SITE.name} / PREVIEW</span>
+            <h1 id="pv-title"></h1>
+            <p class="pv-desc" id="pv-desc"></p>
+            <div class="prose" id="pv-body"></div>
+          </article>
+        </div>
+      </main>
+
+      <footer class="foot label">
+        <span id="count">0 words · 1 min</span>
+        <span class="hint">Ctrl+S save · Ctrl+B / I / K · Ctrl+Shift+P preview · paste images</span>
+      </footer>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </body>
+</html>
+
+<script>
+  import { marked } from 'marked';
+
+  const API = document.body.dataset.api!;
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const f = {
+    title: $<HTMLInputElement>('title'),
+    description: $<HTMLTextAreaElement>('description'),
+    topic: $<HTMLInputElement>('topic'),
+    date: $<HTMLInputElement>('date'),
+    slug: $<HTMLInputElement>('slug'),
+    body: $<HTMLTextAreaElement>('body'),
+    draft: $<HTMLInputElement>('draft'),
+  };
+  const desk = document.querySelector<HTMLElement>('.desk')!;
+  const status = $('status');
+  const BACKUP = 'desk:current';
+
+  type Meta = { slug: string; title: string; date: string; topic: string; draft: boolean };
+  let originalSlug = ''; // '' = never saved
+  let slugTouched = false;
+  let dirty = false;
+
+  const today = () => new Date().toISOString().slice(0, 10);
+  const slugify = (s: string) =>
+    s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+
+  // ───────── helpers ─────────
+  function toast(msg: string, ms = 2600) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout((t as any)._t);
+    (t as any)._t = setTimeout(() => t.classList.remove('show'), ms);
+  }
+
+  async function call<T = any>(path: string, init?: RequestInit): Promise<T> {
+    const res = await fetch(API + path, init);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
+  }
+
+  function state() {
+    return {
+      slug: f.slug.value.trim() || slugify(f.title.value),
+      originalSlug,
+      title: f.title.value,
+      description: f.description.value,
+      topic: f.topic.value,
+      date: f.date.value || today(),
+      draft: f.draft.checked,
+      body: f.body.value,
+    };
+  }
+
+  function fill(p: Partial<ReturnType<typeof state>>, saved: boolean) {
+    f.title.value = p.title ?? '';
+    f.description.value = p.description ?? '';
+    f.topic.value = p.topic ?? '';
+    f.date.value = p.date || today();
+    f.slug.value = p.slug ?? '';
+    f.body.value = p.body ?? '';
+    f.draft.checked = p.draft ?? true;
+    originalSlug = p.originalSlug ?? (saved ? p.slug ?? '' : '');
+    slugTouched = Boolean(originalSlug);
+    autosize();
+    render();
+    markDirty(!saved);
+    highlightActive();
+  }
+
+  function markDirty(d: boolean) {
+    dirty = d;
+    const where = originalSlug ? `/writing/${originalSlug}` : 'New entry';
+    status.textContent = d ? `${where} · unsaved` : `${where} · saved`;
+    status.classList.toggle('dirty', d);
+    if (d) localStorage.setItem(BACKUP, JSON.stringify(state()));
+  }
+
+  // ───────── preview ─────────
+  let raf = 0;
+  function render() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      $('pv-title').textContent = f.title.value || 'Untitled';
+      $('pv-desc').textContent = f.description.value;
+      $('pv-body').innerHTML = marked.parse(f.body.value, { async: false }) as string;
+      const words = f.body.value.split(/\s+/).filter(Boolean).length;
+      $('count').textContent = `${words} words · ${Math.max(1, Math.round(words / 200))} min`;
+    });
+  }
+
+  function autosize() {
+    for (const el of [f.body, f.description]) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+  }
+
+  // ───────── entries list ─────────
+  async function loadList() {
+    const posts = await call<Meta[]>('/list');
+    $('list').innerHTML = posts
+      .map(
+        (p) => `<li><button data-slug="${p.slug}">
+          <span class="t">${escape(p.title)}</span>
+          <span class="label">${p.date}${p.draft ? ' · <em>draft</em>' : ''}</span>
+        </button></li>`,
+      )
+      .join('');
+    $('topics').innerHTML = [...new Set(posts.map((p) => p.topic))].map((t) => `<option value="${escape(t)}">`).join('');
+    highlightActive();
+  }
+
+  const escape = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  function highlightActive() {
+    document.querySelectorAll<HTMLButtonElement>('#list button').forEach((b) => {
+      b.setAttribute('aria-current', String(b.dataset.slug === originalSlug));
+    });
+  }
+
+  async function open(slug: string) {
+    if (dirty && !confirm('You have unsaved changes. Discard them?')) return;
+    const p = await call(`/post?slug=${encodeURIComponent(slug)}`);
+    fill(p, true);
+    localStorage.removeItem(BACKUP);
+    f.body.focus();
+  }
+
+  function newEntry() {
+    if (dirty && !confirm('You have unsaved changes. Discard them?')) return;
+    fill({ date: today(), draft: true }, true);
+    originalSlug = '';
+    markDirty(false);
+    status.textContent = 'New entry';
+    localStorage.removeItem(BACKUP);
+    f.title.focus();
+  }
+
+  // ───────── save / publish ─────────
+  async function save(quiet = false) {
+    const s = state();
+    if (!s.title.trim()) {
+      toast('Give it a title first.');
+      f.title.focus();
+      return false;
+    }
+    try {
+      const r = await call('/save', { method: 'POST', body: JSON.stringify(s) });
+      originalSlug = r.slug;
+      f.slug.value = r.slug;
+      slugTouched = true;
+      markDirty(false);
+      localStorage.removeItem(BACKUP);
+      await loadList();
+      if (!quiet) toast(s.draft ? 'Saved as draft.' : 'Saved — public on next push.');
+      return true;
+    } catch (e) {
+      toast('Save failed: ' + (e as Error).message, 5000);
+      return false;
+    }
+  }
+
+  async function publish() {
+    f.draft.checked = false;
+    if (!(await save(true))) return;
+    toast('Committing & pushing…', 10000);
+    try {
+      const r = await call('/push', {
+        method: 'POST',
+        body: JSON.stringify({ slug: originalSlug, message: `Publish: ${f.title.value.trim()}` }),
+      });
+      toast(r.log, 7000);
+    } catch (e) {
+      toast('Push failed: ' + (e as Error).message, 8000);
+    }
+  }
+
+  // ───────── formatting ─────────
+  function wrap(before: string, after = before, placeholder = 'text') {
+    const { selectionStart: a, selectionEnd: b, value } = f.body;
+    const sel = value.slice(a, b) || placeholder;
+    f.body.setRangeText(before + sel + after, a, b, 'end');
+    f.body.setSelectionRange(a + before.length, a + before.length + sel.length);
+    afterEdit();
+  }
+
+  function linePrefix(prefix: string) {
+    const { selectionStart: a, selectionEnd: b, value } = f.body;
+    const start = value.lastIndexOf('\n', a - 1) + 1;
+    const block = value.slice(start, b);
+    f.body.setRangeText(block.split('\n').map((l) => prefix + l).join('\n'), start, b, 'end');
+    afterEdit();
+  }
+
+  function insertBlock(text: string) {
+    const { selectionStart: a, value } = f.body;
+    const pre = a > 0 && value[a - 1] !== '\n' ? '\n\n' : '';
+    f.body.setRangeText(pre + text + '\n', a, f.body.selectionEnd, 'end');
+    afterEdit();
+  }
+
+  function afterEdit() {
+    f.body.focus();
+    autosize();
+    render();
+    markDirty(true);
+  }
+
+  const fmt: Record<string, () => void> = {
+    h2: () => linePrefix('## '),
+    h3: () => linePrefix('### '),
+    bold: () => wrap('**'),
+    italic: () => wrap('*'),
+    link: () => {
+      const url = prompt('Link URL', 'https://');
+      if (url) wrap('[', `](${url})`, 'link text');
+    },
+    quote: () => linePrefix('> '),
+    list: () => linePrefix('- '),
+    code: () => wrap('\n```\n', '\n```\n', 'code'),
+    hr: () => insertBlock('\n---\n'),
+    image: () => $<HTMLInputElement>('file').click(),
+  };
+
+  async function upload(file: File) {
+    if (!file.type.startsWith('image/')) return;
+    toast('Uploading image…');
+    try {
+      const r = await call(`/upload?name=${encodeURIComponent(file.name || 'pasted.png')}`, { method: 'POST', body: file });
+      insertBlock(`![${file.name.replace(/\.[^.]+$/, '')}](${r.url})`);
+      toast('Image added.');
+    } catch (e) {
+      toast('Upload failed: ' + (e as Error).message, 5000);
+    }
+  }
+
+  // ───────── wiring ─────────
+  for (const el of Object.values(f)) {
+    el.addEventListener('input', () => {
+      if (el === f.title && !slugTouched) f.slug.value = slugify(f.title.value);
+      if (el === f.slug) slugTouched = true;
+      autosize();
+      render();
+      markDirty(true);
+    });
+  }
+  f.draft.addEventListener('change', () => markDirty(true));
+
+  document.querySelectorAll<HTMLButtonElement>('[data-fmt]').forEach((b) =>
+    b.addEventListener('click', () => fmt[b.dataset.fmt!]()),
+  );
+  $<HTMLInputElement>('file').addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) upload(file);
+  });
+  f.body.addEventListener('paste', (e) => {
+    const file = [...(e.clipboardData?.files ?? [])][0];
+    if (file) {
+      e.preventDefault();
+      upload(file);
+    }
+  });
+  f.body.addEventListener('drop', (e) => {
+    const file = [...(e.dataTransfer?.files ?? [])][0];
+    if (file) {
+      e.preventDefault();
+      upload(file);
+    }
+  });
+
+  function setMode(mode: string) {
+    desk.dataset.mode = mode;
+    document.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+      b.setAttribute('aria-selected', String(b.dataset.mode === mode)),
+    );
+    try { localStorage.setItem('desk:mode', mode); } catch {}
+  }
+  document.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+    b.addEventListener('click', () => setMode(b.dataset.mode!)),
+  );
+
+  $('toggle-side').addEventListener('click', () => desk.classList.toggle('no-side'));
+  $('new').addEventListener('click', newEntry);
+  $('save').addEventListener('click', () => save());
+  $('publish').addEventListener('click', publish);
+  $('list').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-slug]');
+    if (b) open(b.dataset.slug!);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 's') { e.preventDefault(); save(); }
+    else if (k === '\\') { e.preventDefault(); desk.classList.toggle('no-side'); }
+    else if (e.shiftKey && k === 'p') { e.preventDefault(); setMode(desk.dataset.mode === 'preview' ? 'write' : 'preview'); }
+    else if (document.activeElement === f.body && ['b', 'i', 'k'].includes(k)) {
+      e.preventDefault();
+      fmt[{ b: 'bold', i: 'italic', k: 'link' }[k]!]();
+    }
+  });
+
+  window.addEventListener('beforeunload', (e) => {
+    if (dirty) e.preventDefault();
+  });
+
+  // ───────── boot ─────────
+  try { setMode(localStorage.getItem('desk:mode') || 'write'); } catch {}
+  await loadList().catch((e) => toast('Could not load entries: ' + e.message, 5000));
+  const backup = (() => { try { return JSON.parse(localStorage.getItem(BACKUP) || 'null'); } catch { return null; } })();
+  if (backup) {
+    fill(backup, false);
+    toast('Restored your unsaved writing.');
+  } else {
+    fill({ date: today(), draft: true }, true);
+    status.textContent = 'New entry';
+  }
+</script>
+
+<style>
+  :global(body) {
+    overflow: hidden;
+  }
+
+  .desk {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: 'bar bar' 'side page' 'foot foot';
+    height: 100svh;
+  }
+
+  .desk.no-side {
+    grid-template-columns: 0 1fr;
+  }
+
+  .desk.no-side .side {
+    visibility: hidden;
+  }
+
+  :where(.desk) :global(button) {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  input,
+  textarea {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    outline: none;
+  }
+
+  /* ───────── bar ───────── */
+  .bar {
+    grid-area: bar;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 1.25rem;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .bar-left,
+  .bar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .brand {
+    font-size: var(--t-small);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .icon {
+    font-size: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .status.dirty::before {
+    content: '● ';
+    color: var(--ink);
+  }
+
+  .modes {
+    display: flex;
+    border: 1px solid var(--ink);
+  }
+
+  .modes button {
+    padding: 0.35rem 0.7rem;
+    font-size: var(--t-micro);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .modes button + button {
+    border-left: 1px solid var(--ink);
+  }
+
+  .modes button[aria-selected='true'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .draft-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .draft-toggle input {
+    accent-color: var(--ink);
+  }
+
+  .btn {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--ink);
+    font-size: var(--t-micro);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .btn:hover,
+  .btn--ink {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn--ink:hover {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  /* ───────── side ───────── */
+  .side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--rule);
+    overflow-y: auto;
+  }
+
+  .new {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--ink);
+    text-align: left;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .new:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  #list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+  }
+
+  #list :global(button) {
+    display: grid;
+    gap: 0.2rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+  }
+
+  #list :global(button:hover) {
+    background: var(--paper-deep);
+  }
+
+  #list :global(button[aria-current='true']) {
+    background: var(--paper-deep);
+    box-shadow: inset 2px 0 0 var(--ink);
+  }
+
+  #list :global(.t) {
+    font-size: var(--t-small);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .view-site {
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+  }
+
+  /* ───────── page ───────── */
+  .page {
+    grid-area: page;
+    overflow-y: auto;
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3.5rem) 6rem;
+  }
+
+  .meta {
+    max-width: 1100px;
+    margin-inline: auto;
+  }
+
+  .title {
+    width: 100%;
+    font-size: clamp(2rem, 4.5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+  }
+
+  .title::placeholder,
+  textarea::placeholder,
+  input::placeholder {
+    color: var(--rule);
+  }
+
+  #description {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+    resize: none;
+    font-size: var(--t-small);
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .row label {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.6rem 1rem 0.7rem;
+  }
+
+  .row label:first-child {
+    padding-left: 0;
+  }
+
+  .row label + label {
+    border-left: 1px solid var(--rule);
+  }
+
+  .row input {
+    width: 100%;
+    font-size: var(--t-small);
+    font-weight: 600;
+  }
+
+  .row .slug {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+  }
+
+  .row .slug .label {
+    grid-column: 1 / -1;
+  }
+
+  .prefix {
+    font-size: var(--t-small);
+    color: var(--muted);
+  }
+
+  .toolbar {
+    position: sticky;
+    top: calc(-1 * clamp(1.5rem, 4vw, 3rem));
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.6rem 0;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toolbar button {
+    padding: 0.3rem 0.6rem;
+    font-size: var(--t-micro);
+    letter-spacing: 0.06em;
+  }
+
+  .toolbar button:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .panes {
+    display: grid;
+    gap: 3rem;
+    max-width: 1100px;
+    margin: 2rem auto 0;
+  }
+
+  .editor {
+    display: block;
+    width: 100%;
+    max-width: var(--measure);
+    min-height: 55vh;
+    margin-inline: auto;
+    resize: none;
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    caret-color: var(--ink);
+  }
+
+  .preview {
+    display: none;
+  }
+
+  .preview h1 {
+    margin: 1rem 0 0.75rem;
+    font-size: clamp(2rem, 4.5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+
+  .pv-desc {
+    margin: 0 0 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--ink);
+    font-size: var(--t-small);
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .desk[data-mode='preview'] .editor,
+  .desk[data-mode='preview'] .meta,
+  .desk[data-mode='preview'] .toolbar {
+    display: none;
+  }
+
+  .desk[data-mode='preview'] .preview,
+  .desk[data-mode='split'] .preview {
+    display: block;
+  }
+
+  .desk[data-mode='preview'] .preview {
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+
+  .desk[data-mode='split'] .panes {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .desk[data-mode='split'] .preview {
+    position: sticky;
+    top: 3.5rem;
+    max-height: calc(100svh - 10rem);
+    overflow-y: auto;
+    padding-left: 3rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  .desk[data-mode='split'] .preview h1 {
+    font-size: 2rem;
+  }
+
+  /* ───────── foot / toast ───────── */
+  .foot {
+    grid-area: foot;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 1.25rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .toast {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 3rem;
+    max-width: min(520px, calc(100vw - 2.5rem));
+    padding: 0.8rem 1rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--t-small);
+    white-space: pre-wrap;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 860px) {
+    .desk {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'bar' 'page' 'foot';
+    }
+    .side {
+      display: none;
+    }
+    .desk.no-side .side {
+      display: flex;
+    }
+    .hint,
+    .status {
+      display: none;
+    }
+    .bar {
+      flex-wrap: wrap;
+    }
+    .desk[data-mode='split'] .panes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

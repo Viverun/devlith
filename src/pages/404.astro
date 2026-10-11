@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found">
+  <section class="wrap nf">
+    <span class="label">Error / 404</span>
+    <h1>NOT<br />HERE<span class="cursor" aria-hidden="true"></span></h1>
+    <a class="box-link" href="/">Back to index</a>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    display: grid;
+    justify-items: center;
+    gap: 2.5rem;
+    padding-block: clamp(4rem, 12vw, 9rem);
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--t-hero);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+  }
+</style>
