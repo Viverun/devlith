@@ -129,8 +129,23 @@ const views = [
   }
 
   .item {
+    position: relative;
     padding: 1.6rem 2.5rem 1.8rem 0;
     border-bottom: 1px solid var(--rule);
+  }
+
+  /* the whole card opens the post; the abstract toggle sits above that link */
+
+  .item h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .item .byline a,
+  .item details {
+    position: relative;
+    z-index: 1;
   }
 
   .item:nth-child(even) {
@@ -149,7 +164,7 @@ const views = [
     text-decoration: none;
   }
 
-  .item h3 a:hover {
+  .item:hover h3 a {
     text-decoration: underline;
     text-underline-offset: 4px;
   }
