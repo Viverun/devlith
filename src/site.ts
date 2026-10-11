@@ -1,7 +1,6 @@
 // Edit these to make the site yours.
 export const SITE = {
   name: 'VIVERUN',
-  domain: 'devlith.vercel.app',
   author: 'Jamil',
   role: 'Engineer',
   location: 'India',
