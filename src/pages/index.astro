@@ -9,8 +9,6 @@ const latest = posts.slice(0, 5);
 
 <Base>
   <section class="hero wrap">
-    <span class="label corner tl">Vol. {SITE.volume} — {SITE.established}</span>
-
     <h1 class="headline" data-stream="char">
       {
         SITE.hero.map((line, i) => (
@@ -114,10 +112,6 @@ const latest = posts.slice(0, 5);
   .corner {
     position: absolute;
     font-size: 0.625rem;
-  }
-  .tl {
-    top: 1.5rem;
-    left: var(--gutter);
   }
   .bl {
     bottom: 1.5rem;
