@@ -39,5 +39,59 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     {footer && <Footer />}
+    <script is:inline>
+      // Chat-style streaming for [data-stream="char" | "word"] elements, in page order,
+      // with a cursor riding the end. Long blocks take bigger chunks so nothing drags past ~4s.
+      (() => {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const blocks = [...document.querySelectorAll('[data-stream]')];
+        if (!blocks.length) return;
+
+        const tokenize = (el, mode) => {
+          const out = [];
+          const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+          const nodes = [];
+          while (walker.nextNode()) if (walker.currentNode.nodeValue.trim()) nodes.push(walker.currentNode);
+          for (const node of nodes) {
+            const frag = document.createDocumentFragment();
+            const parts = mode === 'char' ? [...node.nodeValue] : node.nodeValue.split(/(\s+)/);
+            for (const part of parts) {
+              if (!part) continue;
+              if (/^\s+$/.test(part)) { frag.append(part); continue; }
+              const span = document.createElement('span');
+              span.className = 'tok';
+              span.textContent = part;
+              frag.append(span);
+              out.push(span);
+            }
+            node.replaceWith(frag);
+          }
+          return out;
+        };
+
+        const queue = blocks.map((el) => ({ el, toks: tokenize(el, el.dataset.stream), own: el.querySelector('.cursor') }));
+        document.documentElement.classList.add('streaming');
+
+        const play = (i) => {
+          if (i >= queue.length) return;
+          const { toks, own } = queue[i];
+          if (!toks.length) return play(i + 1);
+          const cursor = own ?? Object.assign(document.createElement('span'), { className: 'cursor' });
+          cursor.setAttribute('aria-hidden', 'true');
+          const base = Math.max(1, Math.ceil(toks.length / 120));
+          let n = 0;
+          const tick = () => {
+            const end = Math.min(toks.length, n + base + Math.floor(Math.random() * (base + 2)));
+            for (; n < end; n++) toks[n].classList.add('on');
+            toks[n - 1].after(cursor);
+            if (n < toks.length) return setTimeout(tick, 30 + Math.random() * 50);
+            if (!own) cursor.remove();
+            setTimeout(() => play(i + 1), 150);
+          };
+          tick();
+        };
+        setTimeout(() => play(0), 300);
+      })();
+    </script>
   </body>
 </html>

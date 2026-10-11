@@ -152,6 +152,16 @@ img {
   }
 }
 
+/* chat-style streaming (script in Base.astro) */
+.streaming .tok {
+  opacity: 0;
+}
+
+.streaming .tok.on {
+  opacity: 1;
+  transition: opacity 0.2s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cursor {
     animation: none;

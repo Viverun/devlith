@@ -11,13 +11,11 @@ const latest = posts.slice(0, 5);
   <section class="hero wrap">
     <span class="label corner tl">Vol. {SITE.volume} — {SITE.established}</span>
 
-    <h1 class="headline" aria-label={SITE.hero.join(' ')}>
+    <h1 class="headline" data-stream="char">
       {
         SITE.hero.map((line, i) => (
-          <span class="line" aria-hidden="true">
-            {[...line].map((ch, j) => (
-              <span class="ch" style={`--i:${SITE.hero.slice(0, i).join('').length + j}`}>{ch}</span>
-            ))}
+          <span class="line">
+            {line}
             {i === SITE.hero.length - 1 && <span class="cursor" aria-hidden="true" />}
           </span>
         ))
@@ -94,27 +92,6 @@ const latest = posts.slice(0, 5);
     line-height: 0.95;
     letter-spacing: -0.045em;
     text-align: center;
-  }
-
-  /* text flow: letters rise in one after another */
-  .ch {
-    display: inline-block;
-    animation: flow-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    animation-delay: calc(var(--i) * 35ms);
-  }
-
-  @keyframes flow-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.4em);
-      filter: blur(6px);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .ch {
-      animation: none;
-    }
   }
 
   .scroll {
