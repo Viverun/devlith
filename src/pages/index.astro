@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
 import { SITE } from '../site';
 import { getPosts, fmtDate } from '../lib/posts';
 
@@ -31,14 +32,14 @@ const latest = posts.slice(0, 5);
   <section id="latest" class="wrap latest">
     <div class="section-head">
       <span class="label label--ink">01 / Latest entries</span>
-      <a class="arrow-link" href="/writing">All {posts.length} →</a>
+      <a class="arrow-link" href={url('/writing')}>All {posts.length} →</a>
     </div>
 
     <ol class="entries">
       {
         latest.map((post) => (
           <li>
-            <a class="entry" href={`/writing/${post.id}`}>
+            <a class="entry" href={url(`/writing/${post.id}`)}>
               <span class="no">{post.no}</span>
               <div class="body">
                 <h2>{post.data.title}</h2>
@@ -64,7 +65,7 @@ const latest = posts.slice(0, 5);
       This is where I think out loud — about engineering, about learning, and about whatever I happen to be
       feeling at the time. No algorithm, no engagement metrics. Just a notebook that happens to be public.
     </p>
-    <a class="box-link" href="/about">More about me</a>
+    <a class="box-link" href={url('/about')}>More about me</a>
   </section>
 </Base>
 

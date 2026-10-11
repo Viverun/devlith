@@ -1,17 +1,18 @@
 ---
 import { SITE } from '../site';
+import { url, unbase } from '../lib/url';
 
 const nav = [
   { href: '/', label: 'Index' },
   { href: '/writing', label: 'Writing' },
   { href: '/about', label: 'About' },
 ];
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const path = unbase(Astro.url.pathname).replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 ---
 
 <header class="site-header wrap">
-  <a class="brand" href="/">
+  <a class="brand" href={url('/')}>
     <svg class="mark" viewBox="10 12 44 40" aria-hidden="true">
       <path d="M12 14h9.5L27 40l5.5-26H42L32 50H22z" />
       <rect class="cursor-bar" x="48" y="12" width="4" height="40" />
@@ -21,7 +22,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   <nav aria-label="Primary">
     {
       nav.map((item) => (
-        <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+        <a href={url(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
           {item.label}
         </a>
       ))
