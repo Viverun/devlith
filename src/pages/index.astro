@@ -25,6 +25,15 @@ const latest = posts.slice(0, 5);
       <span class="label">Scroll</span>
       <svg viewBox="0 0 16 24" aria-hidden="true"><path d="M8 2v18M2 14l6 6 6-6" /></svg>
     </a>
+    <script is:inline>
+      // The cue only matters before the reader starts scrolling: fade it out after the first few pixels.
+      (() => {
+        const cue = document.currentScript.previousElementSibling;
+        const update = () => cue.classList.toggle('is-gone', scrollY > 40);
+        update();
+        addEventListener('scroll', update, { passive: true });
+      })();
+    </script>
   </section>
 
   <section id="latest" class="wrap latest">
@@ -101,6 +110,12 @@ const latest = posts.slice(0, 5);
     justify-items: center;
     gap: 0.4rem;
     text-decoration: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .scroll-cue.is-gone {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .scroll-cue svg {
