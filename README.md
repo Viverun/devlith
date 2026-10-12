@@ -1,4 +1,4 @@
-# viverun.dev
+# viverun.github.io/devlith
 
 A personal journal. Astro + Markdown, set entirely in JetBrains Mono on warm paper.
 
