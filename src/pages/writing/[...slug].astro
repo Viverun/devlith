@@ -19,7 +19,7 @@ const { Content, headings } = await render(post);
 const toc = headings.filter((h) => h.depth === 2);
 ---
 
-<Base title={post.data.title} description={post.data.description}>
+<Base title={post.data.title} description={post.data.description} image={`/og/${post.id}.png`}>
   <article class="wrap">
     <header class="head">
       <div class="top">
