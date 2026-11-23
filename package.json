@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "new": "node scripts/new-post.mjs"
+    "new": "cargo run -q --release --manifest-path tools/new-post/Cargo.toml --"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
