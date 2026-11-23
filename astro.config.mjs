@@ -7,6 +7,8 @@ import desk from './integrations/desk.mjs';
 export default defineConfig({
   site: process.env.SITE_URL ?? 'https://devlith.vercel.app',
   base: process.env.BASE_PATH ?? '/',
+  // `npm run desk` opens the writing desk in the browser on start.
+  server: { open: process.env.DESK ? '/viverun-desk' : false },
   // The writing desk only exists while running `npm run dev` on your machine.
   integrations: [sitemap(), desk({ path: '/viverun-desk' })],
   markdown: {

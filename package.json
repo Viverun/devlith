@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "desk": "DESK=1 astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "new": "cargo run -q --release --manifest-path tools/new-post/Cargo.toml --"

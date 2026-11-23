@@ -7,6 +7,7 @@ A personal journal. Astro + Markdown, set entirely in JetBrains Mono on warm pap
 ```sh
 npm install
 npm run dev                      # http://localhost:4321
+npm run desk                     # local writing desk at localhost:4321/viverun-desk
 npm run new -- "My post title"   # creates a draft in src/content/writing/
 npm run build                    # static output in dist/
 ```
