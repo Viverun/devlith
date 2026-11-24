@@ -16,11 +16,9 @@ The dashed boxes below are the model's own internal reasoning, copied straight f
 
 My laptop is a Galaxy Book with an Intel Core 5 120U, 15 GB of RAM and Intel integrated graphics which doesn't even have its own memory, it just borrows the same RAM. **No graphics card at all.**
 
-The model is **Inkling 2 Mini** by Thinking Machines Lab and on paper it shouldn't fit anywhere near my laptop, it's 26.4 billion parameters. The trick is that it's a mixture of experts, it has 128 small expert networks inside it and only picks 8 of them for every token, so only about 3.4 billion parameters are actually working at any moment. It also has this odd design where the middle 12 of its 24 layers run **three times** for every single token, kind of like reading the same paragraph three times before moving to the next one
+The model is **Inkling 2 Mini** by Thinking Machines Lab. It's big, 26 billion parameters, but it only uses a small part of itself for each word it writes, which is the only reason it can run on a laptop at all
 
-The full model is 52 GB which is obviously not happening on 15 GB of RAM, so I used a compressed version from AtomicChat called `AD-IQ2_XXS-Q2` which is 7.9 GB, roughly two bits per weight. Their own numbers say this version picks the same next word as the full model only **84%** of the time, so a lot is lost in the squeeze and I wanted to see how much was left
-
-To run it I used llama.cpp. Getting there wasn't smooth at all, the first build failed because of a missing package and the first download just sat at 0 KB/s for minutes with nothing coming through, I ended up grabbing the file with plain `curl` and twenty minutes later it was finally on my disk
+The full model is 52 GB, way more than my 15 GB of RAM, so I used a **compressed 7.9 GB version** from AtomicChat. Squeezing it that much has a cost, it agrees with the full model only **84%** of the time, so I wanted to see how much smarts were left
 
 ## How fast is it, really
 *Spoiler: it's not*
