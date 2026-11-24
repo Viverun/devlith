@@ -35,7 +35,7 @@ So we're looking at about **five words a second**, that's basically reading spee
 
 I started easy, why is the sky blue, why are sunsets red, how much more is blue light scattered than red, and write some code for it
 
-It got everything, Rayleigh scattering, the 1/λ⁴ law, (700/450)⁴ ≈ 5.85, a working Python function, the whole thing. Then it said "about 5.8×" which is 5.85 rounded the wrong way, a tiny slip but exactly the kind you'd expect from a model squeezed this hard, time to make it harder
+It got everything, Rayleigh scattering, the 1/λ⁴ law, (700/450)⁴ ≈ 5.85, a working Python function, the whole thing.
 
 ## Test 2: a Pell equation
 *Hard, but checkable*
