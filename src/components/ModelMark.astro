@@ -1,5 +1,5 @@
 ---
-// A model's mark in a thin ink frame, matching the site logo.
+// A model's logo in ink, inside a thin ink frame on paper, matching the site logo.
 import type { Model } from '../lib/models';
 
 interface Props {
@@ -10,9 +10,12 @@ interface Props {
 const { model, size = '4.5rem' } = Astro.props;
 ---
 
-<svg class="model-mark" viewBox="0 0 64 64" style={`width:${size};height:${size}`} role="img" aria-label={`${model.name} mark`}>
+<svg class="model-mark" viewBox="0 0 64 64" style={`width:${size};height:${size}`} role="img" aria-label={`${model.maker} logo`}>
   <rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="currentColor" stroke-width="1" />
-  <Fragment set:html={model.mark} />
+  <!-- logos are 24×24; scale to 36 and centre, leaving a 14px margin inside the frame -->
+  <g transform="translate(14 14) scale(1.5)" fill="currentColor">
+    <Fragment set:html={model.logo} />
+  </g>
 </svg>
 
 <style>
