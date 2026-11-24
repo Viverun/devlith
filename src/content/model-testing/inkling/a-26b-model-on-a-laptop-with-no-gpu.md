@@ -136,21 +136,3 @@ It knew it was confused and just walked around it [*relatable honestly*], and no
 On the leaderboards Inkling 2 Mini sits near the top of small open models and well below the frontier ones. After running two bits of it on my laptop I'd say, for problems where the answer can be checked it reasons like a much bigger model, and you just need patience
 
 A few years ago this kind of reasoning needed a **data centre**, today it ran offline on my laptop from a single 7.9 GB file, I don't fully know what to make of that yet but I know it's a big deal
-
-## Run it yourself
-
-You need llama.cpp build b12600 or newer and the AtomicChat file from Hugging Face
-
-```sh
-git clone https://github.com/ggml-org/llama.cpp
-cmake -S llama.cpp -B llama.cpp/build -DCMAKE_BUILD_TYPE=Release
-cmake --build llama.cpp/build --target llama-server -j
-
-curl -L -o Inkling-2-Mini-AD-IQ2_XXS-Q2.gguf \
-  https://huggingface.co/AtomicChat/Inkling-2-Mini-GGUF/resolve/main/Inkling-2-Mini-AD-IQ2_XXS-Q2.gguf
-
-llama.cpp/build/bin/llama-server -m Inkling-2-Mini-AD-IQ2_XXS-Q2.gguf \
-  -t 8 -fa on -c 65536 -np 1 --jinja --port 8080
-```
-
-Then open `http://127.0.0.1:8080`. Keep the context big (`-c 65536`), my first run used 8K and the model filled the whole thing with reasoning halfway through an answer. For normal everyday questions send `"chat_template_kwargs": {"reasoning_effort": "low"}`, otherwise it'll spend ten minutes thinking about "hi"
