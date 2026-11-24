@@ -9,7 +9,7 @@ verdict: Near-flawless on hard maths and code it can check. Slow, at about 5 tok
 
 Honestly I wasn't expecting anything out of this, a 26 billion parameter model crushed down to **2 bits** running on a laptop that I mostly use for writing and college stuff, my guess was it would load, say something that sounds smart and then completely fall apart the moment I asked it anything real. That's not what happened, and by the end of the day I was the one double checking my own answers instead of the model's
 
-The dashed boxes below are the model's own internal reasoning, copied straight from the chat. I've only cut them short with "…", the words, typos and weird shorthand are exactly how the model wrote them [*it thinks in a very strange way, you'll see*]
+The dashed boxes are the model thinking to itself, and it reasons in a really weird way, you'll see
 
 ## The setup
 *Not exactly an AI machine*
