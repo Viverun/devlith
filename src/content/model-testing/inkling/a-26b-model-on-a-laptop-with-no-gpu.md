@@ -62,7 +62,7 @@ It used the sandbox to list the solutions and ran into a bug in its own code, an
 <p>In JS, .toString has higher? Actually unary? x*x.toString() means x*(x.toString()) because method call binds to x.toString() not (x*x).toString. Yes wrong. Need use (x*x).toString().</p>
 </figure>
 
-That's a proper operator precedence bug and it diagnosed it correctly. And then it didn't even trust the computer, it squared 978,122 by hand as (978,000 + 122)² and got 956,722,646,884, did 564,719² the same way, and I checked every single number, all exact
+That's a proper operator precedence bug and it diagnosed it correctly. And then it didn't even trust the computer, it squared 978,122 by hand as (978,000 + 122)² and got 956,722,646,884, did 564,719² the same way, and every single number checks out, all exact
 
 Final answer, **11 pairs**, every digit right from (2, 1) to (978122, 564719), plus the next pair just to show where the list stops, two proofs and working code
 
@@ -94,7 +94,7 @@ It worried about precision before writing a single line of code because the numb
 <p>Independent computation gives same sum. Good.</p>
 </figure>
 
-**607,927,102,274.** I had worked out the answer beforehand and kept it hidden from the chat, it matches to the last digit, and it's 420 more than the 6/π² shortcut which the model also reported, so no, it didn't fall for the trap
+**607,927,102,274.** I had the real answer worked out separately beforehand and kept it hidden from the chat, it matches to the last digit, and it's 420 more than the 6/π² shortcut which the model also reported, so no, it didn't fall for the trap
 
 Then it did something I never asked for, it noticed that the textbook error bound for this shortcut is around a million while the real gap was only 420, and it got suspicious of its own answer
 
@@ -110,9 +110,7 @@ So it took the gap apart with more code and split the 420 into two pieces, about
 <p>Need explain: the floor errors are not random; their signed sum is +233.57, not O(√N) in magnitude (but maybe O(√N) bound is loose). So exact difference from constant approx is: tail (constant - partial sum) ≈ -186.4 and floor signed error ≈ +233.6, sum ≈ +420. Good.</p>
 </figure>
 
-I checked that split myself, 186.4 and 233.5, it's right
-
-To be fair though, I solved this with the exact same method, it didn't find some genius route that a number theorist wouldn't. What got me is that a **7.9 GB file running on a laptop CPU** knew which route to take, built it without a single bug, checked it two separate ways and didn't take the shortcut that looks right
+That split checks out too, 186.4 and 233.5, it's right
 
 ## What I learned
 *Ugly thinking, right answers*
