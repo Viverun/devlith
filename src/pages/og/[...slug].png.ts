@@ -21,6 +21,7 @@ export const getStaticPaths = (async () => {
         title: 'Model testing',
         subtitle: 'Hands-on tests of AI models: what they get right, where they break, and how they think.',
         footer: `by ${SITE.author}`,
+        site: 'viverun.dev/model-testing',
       },
     },
     ...tests.map((t) => ({
@@ -30,6 +31,7 @@ export const getStaticPaths = (async () => {
         title: t.data.title,
         subtitle: t.data.description,
         footer: fmtDate(t.data.date),
+        site: 'viverun.dev/model-testing',
       },
     })),
     ...posts.map((post) => ({

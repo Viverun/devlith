@@ -33,9 +33,11 @@ interface Card {
   subtitle?: string;
   /** small line at the bottom, e.g. date and topic */
   footer: string;
+  /** address shown bottom-right */
+  site?: string;
 }
 
-export async function renderCard({ kicker, title, subtitle, footer }: Card): Promise<Buffer> {
+export async function renderCard({ kicker, title, subtitle, footer, site = 'viverun.dev/devlith' }: Card): Promise<Buffer> {
   // Shrink long titles so they still fit in four lines.
   const size = title.length > 60 ? 56 : title.length > 32 ? 72 : 88;
   const label = { fontSize: 26, letterSpacing: 2, textTransform: 'uppercase' };
@@ -70,7 +72,7 @@ export async function renderCard({ kicker, title, subtitle, footer }: Card): Pro
       el(
         'div',
         { ...label, display: 'flex', justifyContent: 'space-between', color: MUTED, borderTop: `3px solid ${INK}`, paddingTop: 24 },
-        [el('span', {}, footer), el('span', { color: INK, fontWeight: 800 }, 'viverun.dev/devlith')],
+        [el('span', {}, footer), el('span', { color: INK, fontWeight: 800 }, site)],
       ),
     ],
   );
