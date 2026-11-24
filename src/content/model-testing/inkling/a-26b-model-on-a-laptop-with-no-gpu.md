@@ -28,8 +28,6 @@ The full model is 52 GB, way more than my 15 GB of RAM, so I used a **compressed
 | CPU, 8 threads | 17 tok/s | **5.5 tok/s** |
 | CPU, 12 threads | — | 4.0 tok/s |
 
-The integrated GPU actually lost to the CPU which surprised me, but it makes sense once you think about it, it has no memory of its own so it's fetching the weights over the same path as the CPU and gains nothing. Throwing more threads at it didn't help either, after 8 they just started fighting each other
-
 So we're looking at about **five words a second**, that's basically reading speed, you literally watch it type the answer out
 
 ## Test 1: a warm-up
@@ -37,7 +35,7 @@ So we're looking at about **five words a second**, that's basically reading spee
 
 I started easy, why is the sky blue, why are sunsets red, how much more is blue light scattered than red, and write some code for it
 
-It got everything, Rayleigh scattering, the 1/λ⁴ law, (700/450)⁴ ≈ 5.85, a working Python function, the whole thing. Then it said "about 5.8×" which is 5.85 rounded the wrong way, a tiny slip but exactly the kind you'd expect from a model squeezed this hard. **8.5/10**, time to make it harder
+It got everything, Rayleigh scattering, the 1/λ⁴ law, (700/450)⁴ ≈ 5.85, a working Python function, the whole thing. Then it said "about 5.8×" which is 5.85 rounded the wrong way, a tiny slip but exactly the kind you'd expect from a model squeezed this hard, time to make it harder
 
 ## Test 2: a Pell equation
 *Hard, but checkable*
@@ -66,7 +64,7 @@ It used the sandbox to list the solutions and ran into a bug in its own code, an
 
 That's a proper operator precedence bug and it diagnosed it correctly. And then it didn't even trust the computer, it squared 978,122 by hand as (978,000 + 122)² and got 956,722,646,884, did 564,719² the same way, and I checked every single number, all exact
 
-Final answer, **11 pairs**, every digit right from (2, 1) to (978122, 564719), plus the next pair just to show where the list stops, two proofs and working code. **9.5/10**, I only took off half a point because one step in the final proof was squeezed shorter than it was in its own reasoning
+Final answer, **11 pairs**, every digit right from (2, 1) to (978122, 564719), plus the next pair just to show where the list stops, two proofs and working code
 
 ## Test 3: a problem you can't brute-force
 *Finding the actual limit*
