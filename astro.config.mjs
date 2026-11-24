@@ -10,7 +10,11 @@ export default defineConfig({
   // `npm run desk` opens the writing desk in the browser on start.
   server: { open: process.env.DESK ? '/viverun-desk' : false },
   // The writing desk only exists while running `npm run dev` on your machine.
-  integrations: [sitemap(), desk({ path: '/viverun-desk' })],
+  integrations: [
+    // /model-testing is served at viverun.dev's root (see src/lib/url.ts), so list it there.
+    sitemap({ serialize: (item) => ({ ...item, url: item.url.replace('/devlith/model-testing', '/model-testing') }) }),
+    desk({ path: '/viverun-desk' }),
+  ],
   markdown: {
     shikiConfig: { theme: 'vitesse-light', wrap: false },
   },

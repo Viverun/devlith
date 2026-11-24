@@ -1,0 +1,161 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ModelMark from '../../../components/ModelMark.astro';
+import { url } from '../../../lib/url';
+import { MODELS, type Model } from '../../../lib/models';
+import { getTests } from '../../../lib/tests';
+import { fmtDate } from '../../../lib/posts';
+
+export function getStaticPaths() {
+  return MODELS.map((model) => ({ params: { model: model.id }, props: { model } }));
+}
+
+const { model } = Astro.props as { model: Model };
+const tests = await getTests(model.id);
+---
+
+<Base title={`${model.name} · Model Testing`} description={model.blurb} image="/og/model-testing.png">
+  <div class="wrap">
+    <header class="head">
+      <a class="arrow-link" href={url('/model-testing')}>← All models</a>
+      <div class="id">
+        <ModelMark model={model} size="clamp(4.5rem, 12vw, 7rem)" />
+        <div>
+          <span class="label label--ink">{model.maker}</span>
+          <h1 data-stream="char">{model.name}</h1>
+        </div>
+      </div>
+      <p class="intro">{model.blurb}</p>
+    </header>
+
+    <div class="section-head">
+      <span class="label label--ink">Write-ups</span>
+      <span class="label">{tests.length}</span>
+    </div>
+
+    {
+      tests.length ? (
+        <ol class="tests">
+          {tests.map((t) => (
+            <li>
+              <a class="test" href={url(`/model-testing/${t.model}/${t.slug}`)}>
+                <div class="body">
+                  <h2>{t.data.title}</h2>
+                  <p>{t.data.description}</p>
+                  <p class="verdict">→ {t.data.verdict}</p>
+                </div>
+                <div class="meta label">
+                  <span>{fmtDate(t.data.date)}</span>
+                  <span>{t.minutes} min</span>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="empty">Nothing here yet. Tests for {model.name} are on the list.</p>
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(2.5rem, 7vw, 5rem);
+    margin-bottom: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .id {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    margin: 2rem 0 1.5rem;
+  }
+
+  h1 {
+    margin: 0.4rem 0 0;
+    font-size: var(--t-display);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+
+  .intro {
+    max-width: 60ch;
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .tests {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tests li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .test {
+    display: grid;
+    grid-template-columns: 1fr 11rem;
+    gap: 1.5rem;
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+    text-decoration: none;
+    transition: background 0.2s, padding 0.2s;
+  }
+
+  .test:hover {
+    background: var(--paper-deep);
+    padding-inline: 1rem;
+  }
+
+  .body h2 {
+    margin: 0 0 0.6rem;
+    font-size: var(--t-h2);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .body p {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .body .verdict {
+    margin-top: 0.75rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .meta {
+    display: grid;
+    align-content: start;
+    justify-items: end;
+    gap: 0.2rem;
+  }
+
+  .empty {
+    margin: 2rem 0;
+    color: var(--muted);
+  }
+
+  @media (max-width: 720px) {
+    .test {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .meta {
+      grid-auto-flow: column;
+      justify-content: start;
+      gap: 1rem;
+    }
+  }
+</style>

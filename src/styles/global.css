@@ -314,3 +314,36 @@ main {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* model's own reasoning, quoted in model-testing write-ups:
+   <figure class="monologue"><figcaption>…</figcaption><p>…</p></figure> */
+.prose .monologue {
+  margin-inline: 0;
+  padding: 1rem 1.25rem 1.1rem;
+  border: 1px dashed var(--ink);
+  background: var(--paper-deep);
+}
+
+.prose .monologue figcaption {
+  margin-bottom: 0.6rem;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.prose .monologue figcaption::before {
+  content: '◌ ';
+}
+
+.prose .monologue p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  font-style: italic;
+}
+
+.prose .monologue p + p {
+  margin-top: 0.6em;
+}

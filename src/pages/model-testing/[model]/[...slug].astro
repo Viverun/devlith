@@ -1,0 +1,235 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ModelMark from '../../../components/ModelMark.astro';
+import { url } from '../../../lib/url';
+import { SITE } from '../../../site';
+import { getModel } from '../../../lib/models';
+import { getTests, type Test } from '../../../lib/tests';
+import { fmtDate } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const tests = await getTests();
+  return tests
+    .filter((t) => getModel(t.model))
+    .map((test) => ({ params: { model: test.model, slug: test.slug }, props: { test } }));
+}
+
+const { test } = Astro.props as { test: Test };
+const model = getModel(test.model)!;
+const { Content, headings } = await render(test);
+const toc = headings.filter((h) => h.depth === 2);
+---
+
+<Base title={test.data.title} description={test.data.description} image={`/og/model-testing/${test.model}/${test.slug}.png`}>
+  <article class="wrap">
+    <header class="head">
+      <div class="top">
+        <span class="label label--ink">{SITE.name} / Model Testing / {model.name}</span>
+        <span class="label">{test.minutes} min read{test.data.draft && ' · DRAFT'}</span>
+      </div>
+
+      <div class="id">
+        <ModelMark model={model} size="clamp(3.5rem, 9vw, 5.5rem)" />
+        <h1 data-stream="char">{test.data.title}</h1>
+      </div>
+
+      <dl class="titleblock">
+        <div><dt class="label">Date</dt><dd>{fmtDate(test.data.date)}</dd></div>
+        <div><dt class="label">Model</dt><dd>{model.name}</dd></div>
+        <div><dt class="label">Build</dt><dd>{test.data.build}</dd></div>
+        <div><dt class="label">Rig</dt><dd>{test.data.rig}</dd></div>
+      </dl>
+    </header>
+
+    <div class="layout">
+      <aside class="side">
+        <p class="lede">{test.data.description}</p>
+        <p class="verdict"><span class="label label--ink">Verdict</span>{test.data.verdict}</p>
+        {
+          toc.length > 0 && (
+            <nav class="toc" aria-label="Contents">
+              <span class="label label--ink">Contents</span>
+              <ol>
+                {toc.map((h, i) => (
+                  <li>
+                    <a href={`#${h.slug}`}>
+                      <span class="n">{String(i + 1).padStart(2, '0')}</span>
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+        <a class="arrow-link back" href={url(`/model-testing/${model.id}`)}>← All {model.name} tests</a>
+      </aside>
+      <div class="prose" data-stream="word">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(2.5rem, 7vw, 5rem);
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .id {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin: 1.75rem 0 clamp(2.5rem, 6vw, 4rem);
+  }
+
+  h1 {
+    max-width: 20ch;
+    margin: 0;
+    font-size: clamp(2rem, 5.5vw, 4rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .titleblock div {
+    padding: 0.8rem 1rem 0.9rem 0;
+    min-width: 0;
+  }
+
+  .titleblock div + div {
+    padding-left: 1rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+    font-size: var(--t-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--measure));
+    gap: clamp(1.5rem, 5vw, 4rem);
+    margin-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .side {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    display: grid;
+    gap: 2rem;
+  }
+
+  .lede {
+    margin: 0;
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .verdict {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ink);
+    font-size: var(--t-small);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .toc ol {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    border-top: 1px solid var(--ink);
+  }
+
+  .toc li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toc a {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    padding-block: 0.6rem;
+    font-size: var(--t-small);
+    line-height: 1.4;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .toc a:hover {
+    background: var(--paper-deep);
+  }
+
+  .toc .n {
+    color: var(--muted);
+  }
+
+  .back {
+    justify-self: start;
+  }
+
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  @media (max-width: 860px) {
+    .layout {
+      /* minmax(0, …) so wide code blocks scroll inside the column instead of widening the page */
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .side {
+      position: static;
+    }
+    .toc,
+    .back {
+      display: none;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .titleblock {
+      grid-template-columns: 1fr 1fr;
+    }
+    /* same specificity as `div + div` above, so this one wins */
+    .titleblock div + div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .titleblock div + div:nth-child(n + 3) {
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .id {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

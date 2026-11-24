@@ -1,0 +1,25 @@
+---
+// A model's mark in a thin ink frame, matching the site logo.
+import type { Model } from '../lib/models';
+
+interface Props {
+  model: Model;
+  size?: string;
+}
+
+const { model, size = '4.5rem' } = Astro.props;
+---
+
+<svg class="model-mark" viewBox="0 0 64 64" style={`width:${size};height:${size}`} role="img" aria-label={`${model.name} mark`}>
+  <rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="currentColor" stroke-width="1" />
+  <Fragment set:html={model.mark} />
+</svg>
+
+<style>
+  .model-mark {
+    display: block;
+    flex: none;
+    color: var(--ink);
+    background: var(--paper);
+  }
+</style>
