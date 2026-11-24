@@ -21,9 +21,6 @@ The model is **Inkling 2 Mini** by Thinking Machines Lab. It's big, 26 billion p
 The full model is 52 GB, way more than my 15 GB of RAM, so I used a **compressed 7.9 GB version** from AtomicChat. Squeezing it that much has a cost, it agrees with the full model only **84%** of the time, so I wanted to see how much smarts were left
 
 ## How fast is it, really
-*Spoiler: it's not*
-
-Before asking it anything I measured the speed
 
 | Setup | Reading a prompt | Writing a reply |
 |---|---|---|
