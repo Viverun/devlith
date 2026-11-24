@@ -121,7 +121,7 @@ To be fair though, I solved this with the exact same method, it didn't find some
 
 **It knows when it can check and it uses that.** Every time it had the sandbox or an exact method it was close to flawless, it tested its own code, redid its own arithmetic and only then committed, and that lines up with its public benchmarks too, strong at coding and maths, weaker at long chains of fuzzy instructions
 
-**The compression shows up in the small stuff.** A rounding slip here, a garbled "2^6 * 5^6 = 6415625" there, a moment of doubt about how big a number is, and my favourite, right after correctly taking apart a 420-in-600-billion error, it completely tied itself in knots trying to turn that into a percentage
+**The compression shows up in the small stuff.** A garbled "2^6 * 5^6 = 6415625" here, a moment of doubt about how big a number is, and my favourite, right after correctly taking apart a 420-in-600-billion error, it completely tied itself in knots trying to turn that into a percentage
 
 <figure class="monologue">
 <figcaption>Inkling, reasoning</figcaption>
